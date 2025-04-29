@@ -1,6 +1,7 @@
 package edu.grinnell.csc207.compression;
 
 import java.util.Map;
+import java.util.PriorityQueue;
 
 /**
  * A HuffmanTree derives a space-efficient coding of a collection of byte
@@ -15,13 +16,56 @@ import java.util.Map;
  * our byte values.
  */
 public class HuffmanTree {
+    
+    /**
+     * 
+     */
+    private class Node implements Comparable<Node>{
+        Short value;
+        Integer frequency;
+        Node left;
+        Node right;
+        
+        public Node(Short value, Integer frequency){
+            this.frequency = frequency;
+            this.value = value;
+        }
+        
+        boolean isLeaf() {
+            return (left == null) && (right == null);
+        }
 
+        @Override
+        public int compareTo(Node o) {
+            return this.frequency - o.frequency;
+        }
+    }
+    
+    
     /**
      * Constructs a new HuffmanTree from a frequency map.
      * @param freqs a map from 9-bit values to frequencies.
      */
     public HuffmanTree (Map<Short, Integer> freqs) {
-        // TODO: fill me in!
+        PriorityQueue<Node> p = new PriorityQueue<>();
+        
+        for (Map.Entry<Short, Integer> nodeValues : freqs.entrySet()) {
+            p.add(new Node(nodeValues.getKey(), nodeValues.getValue()));
+        }
+        
+        while (p.size() >= 2){
+            //get the left and right of the head of the queue and remove them, saving the values
+            Node left = p.poll();    
+            Node right = p.poll();   
+
+            //Make the parent node the combined frequency and its child the left and right 
+            Node parent = new Node(null, left.frequency + right.frequency);
+            parent.left = left;
+            parent.right = right;
+
+            p.add(parent);
+        }
+
     }
 
     /**
@@ -29,7 +73,7 @@ public class HuffmanTree {
      * @param in the input file (as a BitInputStream)
      */
     public HuffmanTree (BitInputStream in) {
-        // TODO: fill me in!
+        // TODO: fill me in
     }
 
     /**
