@@ -1,10 +1,8 @@
 package edu.grinnell.csc207.compression;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;
 
 /**
  * The driver for the Grin compression program.
@@ -38,7 +36,7 @@ public class Grin {
     /**
      * Creates a mapping from 8-bit sequences to number-of-occurrences of those
      * sequences in the given file.To do this, read the file using a
- BitInputStream, consuming 8 bits at a time.
+     * BitInputStream, consuming 8 bits at a time.
      *
      * @param file the file to read
      * @return a frequency map for the given file
