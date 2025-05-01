@@ -19,14 +19,15 @@ public class Grin {
      * @param outfile the file to ouptut to
      */
     public static void decode(String infile, String outfile) throws IOException {
+        //open the input as BitInputStreams
         BitInputStream in = new BitInputStream(infile);
         BitOutputStream out = new BitOutputStream(outfile);
-        // Step 1: Read magic number (first 32 bits)
+        //Read magic number (first 32 bits)
         int magic = in.readBits(32);
         if (magic != 0x736) {
             throw new IllegalArgumentException("incorrect magic number.");
         }
-
+        //construct the HuffmanTree then decode to output
         HuffmanTree tree = new HuffmanTree(in);
         tree.decode(in, out);
 
@@ -36,20 +37,24 @@ public class Grin {
 
     /**
      * Creates a mapping from 8-bit sequences to number-of-occurrences of those
-     * sequences in the given file. To do this, read the file using a
-     * BitInputStream, consuming 8 bits at a time.
+     * sequences in the given file.To do this, read the file using a
+ BitInputStream, consuming 8 bits at a time.
      *
      * @param file the file to read
-     * @return a freqency map for the given file
+     * @return a frequency map for the given file
+     * @throws java.io.IOException
      */
     public static Map<Short, Integer> createFrequencyMap(String file) throws IOException {
         BitInputStream in = new BitInputStream(file);
         Map<Short, Integer> freqMap = new HashMap<>();
         int val;
+        //read in 8 bits at a time
         while ((val = in.readBits(8)) != -1) {
-            short sVal = (short) val;
-            freqMap.put(sVal, freqMap.getOrDefault(sVal, 0) + 1);
+            //convert the read value to short
+            short shortVal = (short) val;
+            freqMap.put(shortVal, freqMap.getOrDefault(shortVal, 0) + 1);
         }
+        in.close();
         return freqMap;
     }
 
@@ -63,26 +68,17 @@ public class Grin {
     public static void encode(String infile, String outfile) throws IOException {
         BitInputStream in = new BitInputStream(infile);
         BitOutputStream out = new BitOutputStream(outfile);
-
+        
+        //convert the input file into a frequency map to create the huffman tree
         Map<Short, Integer> freqMap = createFrequencyMap(infile);
         HuffmanTree tree = new HuffmanTree(freqMap);
+        //write the magic number then serialize the tree into output then encode and output the data
         out.writeBits(0x736, 32);
         tree.serialize(out);
-        in = new BitInputStream(infile);
         tree.encode(in, out);
 
         in.close();
         out.close();
-
-        FileInputStream checkOut = new FileInputStream(outfile);
-        for (int i = 0; i < 4; i++) {
-            int b = checkOut.read();
-            if (b == -1) {
-                break;
-            }
-            System.out.printf("%02X ", b);
-        }
-        checkOut.close();
     }
 
     /**
