@@ -1,12 +1,14 @@
 # Project: Grin Compression
 
-Authors: (_TODO: fill in names here!_)
+Authors: Tanadanai (Fui) Hawsatitam
 
 ## Resources
 
-*   (_TODO: fill in resources here!_)
-*   ...
-*   ...
+*   Apache Netbeans IDE
+*   Java version 23
+*   https://www.geeksforgeeks.org/priority-queue-in-java/
+*   https://www.geeksforgeeks.org/hashmap-entryset-method-in-java/
+*   
 
 ## Revision Log
 
