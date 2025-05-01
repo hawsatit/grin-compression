@@ -3,6 +3,7 @@ package edu.grinnell.csc207.compression;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 
 /**
  * The driver for the Grin compression program.
@@ -55,17 +56,36 @@ public class Grin {
      * @param infile the file to encode.
      * @param outfile the file to write the output to.
      */
-    public static void encode(String infile, String outfile) {
-        // TODO: fill me in!
+    public static void encode(String infile, String outfile) throws IOException {
+        BitInputStream in = new BitInputStream(infile);
+        BitOutputStream out = new BitOutputStream(outfile);
+        
+        Map<Short, Integer> freqMap = createFrequencyMap(infile);
+        
+        HuffmanTree tree = new HuffmanTree(freqMap);
+        out.writeBits(32, 0x736);
+        tree.encode(in , out);
     }
 
     /**
      * The entry point to the program.
      *
      * @param args the command-line arguments.
+     * @throws java.io.IOException
      */
-    public static void main(String[] args) {
-        // TODO: fill me in!
+    public static void main(String[] args) throws IOException {
         System.out.println("Usage: java Grin <encode|decode> <infile> <outfile>");
+        if (args.length != 3 ){
+            throw new IOException("Invalid arguements. "
+                    + "\n Please use: java Grin <encode|decode> <infile> <outfile> ");
+        }
+        if ("encode".equals(args[0])){
+            encode(args[1], args[2]);
+        } else if ("decode".equals(args[0])){
+            decode(args[1], args[2]);
+        }else{
+            throw new IOException("Invalid arguements. "
+                    + "\n Please use: java Grin <encode|decode> <infile> <outfile> ");
+        }
     }
 }
