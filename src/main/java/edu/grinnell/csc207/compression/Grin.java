@@ -1,5 +1,6 @@
 package edu.grinnell.csc207.compression;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,6 +29,9 @@ public class Grin {
 
         HuffmanTree tree = new HuffmanTree(in);
         tree.decode(in, out);
+
+        in.close();
+        out.close();
     }
 
     /**
@@ -59,12 +63,26 @@ public class Grin {
     public static void encode(String infile, String outfile) throws IOException {
         BitInputStream in = new BitInputStream(infile);
         BitOutputStream out = new BitOutputStream(outfile);
-        
+
         Map<Short, Integer> freqMap = createFrequencyMap(infile);
-        
         HuffmanTree tree = new HuffmanTree(freqMap);
-        out.writeBits(32, 0x736);
-        tree.encode(in , out);
+        out.writeBits(0x736, 32);
+        tree.serialize(out);
+        in = new BitInputStream(infile);
+        tree.encode(in, out);
+
+        in.close();
+        out.close();
+
+        FileInputStream checkOut = new FileInputStream(outfile);
+        for (int i = 0; i < 4; i++) {
+            int b = checkOut.read();
+            if (b == -1) {
+                break;
+            }
+            System.out.printf("%02X ", b);
+        }
+        checkOut.close();
     }
 
     /**
@@ -75,15 +93,15 @@ public class Grin {
      */
     public static void main(String[] args) throws IOException {
         System.out.println("Usage: java Grin <encode|decode> <infile> <outfile>");
-        if (args.length != 3 ){
+        if (args.length != 3) {
             throw new IOException("Invalid arguements. "
                     + "\n Please use: java Grin <encode|decode> <infile> <outfile> ");
         }
-        if ("encode".equals(args[0])){
+        if ("encode".equals(args[0])) {
             encode(args[1], args[2]);
-        } else if ("decode".equals(args[0])){
+        } else if ("decode".equals(args[0])) {
             decode(args[1], args[2]);
-        }else{
+        } else {
             throw new IOException("Invalid arguements. "
                     + "\n Please use: java Grin <encode|decode> <infile> <outfile> ");
         }
