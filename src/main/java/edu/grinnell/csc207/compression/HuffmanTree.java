@@ -19,7 +19,7 @@ import java.util.PriorityQueue;
  */
 public class HuffmanTree {
 
-    /**
+    /**Node class for the HuffmanTree
      *
      */
     private class Node implements Comparable<Node> {
@@ -28,7 +28,8 @@ public class HuffmanTree {
         Integer frequency;
         Node left;
         Node right;
-
+        
+        //for leafs
         public Node(Short value, Integer frequency) {
             this.frequency = frequency;
             this.value = value;
@@ -45,15 +46,17 @@ public class HuffmanTree {
         boolean isLeaf() {
             return (left == null) && (right == null);
         }
-
+        
+        //method for compareable
         @Override
         public int compareTo(Node o) {
             return this.frequency - o.frequency;
         }
     }
-
+    
+    //initiaize the root node and the huffman code map
     private Node root;
-    private Map<Short, String> encodingMap;
+    Map<Short, String> encodingMap;
 
     /**
      * Constructs a new HuffmanTree from a frequency map.
@@ -66,7 +69,7 @@ public class HuffmanTree {
 
         PriorityQueue<Node> p = new PriorityQueue<>();
         
-        //convert to nodes and add to priority queue
+        //convert map pairs to nodes and add to priority queue
         for (Map.Entry<Short, Integer> nodeValues : freqs.entrySet()) {
             p.add(new Node(nodeValues.getKey(), nodeValues.getValue()));
         }
@@ -76,7 +79,7 @@ public class HuffmanTree {
          * until it is just the root which contains interior nodes until the leaf
          * */
         while (p.size() >= 2) {
-            //get the left and right of the head of the queue and remove them, saving the values
+            //get the left and right from the head of the queue and remove them, saving the values
             Node left = p.poll();
             Node right = p.poll();
 
@@ -89,6 +92,7 @@ public class HuffmanTree {
         }
         //assign the root
         this.root = p.poll();
+        //initialize the huffman code map and build the map
         encodingMap = new HashMap<>();
         buildEncodingMap(root, "");
     }
@@ -103,10 +107,12 @@ public class HuffmanTree {
      * @param path 
      */
     private void buildEncodingMap(Node node, String path) {
+        //return once you get a leaf
         if (node.isLeaf()) {
             encodingMap.put(node.value, path);
             return;
         }
+        //keep going left first and add to the map 0 signaling a left movement
         buildEncodingMap(node.left, path + "0");
         buildEncodingMap(node.right, path + "1");
     }
@@ -121,15 +127,27 @@ public class HuffmanTree {
         encodingMap = new HashMap<>();
         buildEncodingMap(root, "");
     }
-
+    
+    /**
+     * Reads in the BitInput Stream and makes it into a Huffman tree
+     * 
+     * @param in the bit input stream
+     * @return the root node
+     * @throws IOException 
+     */
     private Node readTree(BitInputStream in) throws IOException {
+        //read in the first bit
         int bit = in.readBits(1);
+        //needs to be 0 or 1. If it is -1 it means there is nothing to read
         if (bit == -1) {
             throw new EOFException("Unexpected end of stream while reading tree");
         }
+        //0 means the following bits are leaves so make it into a leaf node and return it
+        //The frequency is irrelevant because we already have the format of the tree
         if (bit == 0) {
             int value = in.readBits(9);
             return new Node((short) value, 0);
+        //1 means the following are internal nodes so keep recursing
         } else if (bit == 1){
             Node left = readTree(in);
             Node right = readTree(in);
@@ -149,9 +167,16 @@ public class HuffmanTree {
     public void serialize(BitOutputStream out) {
         serializeRec(out, this.root);
     }
-
+    
+    /**
+     * Recursive function for writing out a huffmantree 
+     * in a serialized form
+     * 
+     * @param out
+     * @param cur 
+     */
     public void serializeRec(BitOutputStream out, Node cur) {
-        if (cur.left != null && cur.right != null) {
+        if (cur.isLeaf()) {
             out.writeBit(0);
             out.writeBits(cur.value, 9);
         } else {
@@ -171,9 +196,12 @@ public class HuffmanTree {
      * @param out the file to write the compressed output to.
      */
     public void encode(BitInputStream in, BitOutputStream out) {
+        //store each 8 bits in val
         int val;
         while ((val = in.readBits(8)) != -1) {
+            //get the huffman code for the value
             String code = encodingMap.get((short) val);
+            //write the code into the output
             for (char bit : code.toCharArray()) {
                 if (bit == '1'){
                    out.writeBit(1); 
@@ -203,19 +231,20 @@ public class HuffmanTree {
      * @param out the file to write the decompressed output to.
      */
     public void decode(BitInputStream in, BitOutputStream out) throws EOFException {
-            Node current = root;
+        Node current = root;
         while (true) {
             int bit = in.readBits(1);
+            //if you reached the end of thre file before the EOF
             if (bit == -1) {
                 throw new EOFException("Unexpected end of stream");
             }
-            
+            //move left or right until you reach a leaf then move right
             if (bit == 0){
                 current = current.left;
             } else if (bit == 1){
                 current = current.right;
             }
-
+            //retreave the value from the leaf break if it is the EOF
             if (current.isLeaf()) {
                 if (current.value == 256) { // EOF
                     break;
@@ -224,6 +253,5 @@ public class HuffmanTree {
                 current = root;
             }
         }
-
     }
 }
