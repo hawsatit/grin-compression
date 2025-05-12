@@ -12,4 +12,4 @@ Authors: Tanadanai (Fui) Hawsatitam
 
 ## Revision Log
 
-*   (_TODO: fill in your changes to your project here!_)
+*   Did not commit the readme file (fixed)
